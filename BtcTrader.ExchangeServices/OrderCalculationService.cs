@@ -1,11 +1,14 @@
 ﻿using BtcTrader.ExchangeServices.Models;
+using BtcTrader.ExchangeServices.Validators;
 using BtcTrader.Models;
 using BtcTrader.Models.Enums;
+using BtcTrader.Models.Request;
 using BtcTrader.Models.Response;
+using System.ComponentModel.DataAnnotations;
 
 namespace BtcTrader.ExchangeServices
 {
-	public class OrderCalculationService
+    public class OrderCalculationService
 	{
 		private readonly InputDataService _inputDataService;
 		public OrderCalculationService(InputDataService inputDataService)
@@ -14,17 +17,7 @@ namespace BtcTrader.ExchangeServices
 		}
 		public List<OrderResponse> CalculateBestStrategyWithMinimalInput(RequestInfo requestInfo, string? path = null)
 		{
-			if (path == null)
-			{
-				var x = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Data\order_books_data");
-				_inputDataService.ParseData(x);
-			}
-			else
-				_inputDataService.ParseData(path);
-
 			List<CryptoExchanger> cryptoExchangers = _inputDataService.GetCryptoExchangers();
-			if (cryptoExchangers == null || cryptoExchangers.Count == 0)
-				throw new Exception("No crypto exchangers available");
 
 			var orderRequest = new OrderRequest()
 			{
@@ -42,10 +35,14 @@ namespace BtcTrader.ExchangeServices
 
 		public List<OrderResponse> CalculateBestStrategy(OrderRequest orderRequest)
 		{
+			(bool validationResult, string validationMessage) = OrderValidator.Validate(orderRequest);
+			if (!validationResult)
+				throw new ValidationException(validationMessage);
+
 			List<CryptoExchanger> cryptoExchangers = _inputDataService.GetCryptoExchangersByIdList(orderRequest.ExchangerBalances.Select(b => b.Id).ToList());
 			List<OrderResponse> possibleOrders = new();
 
-			if (orderRequest.OrderType == OrderTypeEnum.Sell)
+			if (orderRequest.OrderType == OrderType.Sell)
 			{
 				foreach (var cryptoExchanger in cryptoExchangers)
 				{
@@ -57,7 +54,7 @@ namespace BtcTrader.ExchangeServices
 					.ThenByDescending(o => o.Amount)
 					.ToList();
 			}
-			else if (orderRequest.OrderType == OrderTypeEnum.Buy)
+			else if (orderRequest.OrderType == OrderType.Buy)
 			{
 				foreach (var cryptoExchanger in cryptoExchangers)
 				{
@@ -111,7 +108,7 @@ namespace BtcTrader.ExchangeServices
 		{
 			ExchangerBalance? exchangerBalance = orderRequest.ExchangerBalances.FirstOrDefault(b => b.Id == cryptoExchanger.Id);
 			List<OrderResponse> result = new();
-			List<OrderResponse>? asks = cryptoExchanger.Asks?.Select(b => new OrderResponse()
+			var asks = cryptoExchanger.Asks.Select(b => new OrderResponse()
 			{
 				OrderBookId = cryptoExchanger.Id,
 				Id = b.Id,
@@ -120,13 +117,14 @@ namespace BtcTrader.ExchangeServices
 			}).ToList();
 
 			if (asks == null || !asks.Any() || exchangerBalance == null)
-				return null;
+				return new();
+
 			decimal currentAmount = 0;
 			decimal currentEurBalance = exchangerBalance.EuroBalance;
 
 			foreach (var ask in asks)
 			{
-				// need to buy entier ask and i can do it
+				// need to buy entire ask and can do it
 				if (currentEurBalance > 0
 					&& currentEurBalance / ask.Price >= ask.Amount
 					&& orderRequest.BTCAmount - currentAmount >= ask.Amount)
@@ -138,7 +136,7 @@ namespace BtcTrader.ExchangeServices
 				else if (currentEurBalance > 0 && orderRequest.BTCAmount - currentAmount > 0)
 				{
 					decimal maxAmount;
-					// can`t buy amount that i need
+					// can`t buy amount that needed
 					if (orderRequest.BTCAmount - currentAmount > currentEurBalance / ask.Price)
 					{
 						maxAmount = currentEurBalance / ask.Price;
@@ -170,7 +168,7 @@ namespace BtcTrader.ExchangeServices
 
 		private List<OrderResponse> GetExchangerSellBestPossibleOrders(CryptoExchanger cryptoExchanger, OrderRequest orderRequest)
 		{
-			List<OrderResponse>? bids = cryptoExchanger.Bids?.Select(b => new OrderResponse()
+			var bids = cryptoExchanger.Bids.Select(b => new OrderResponse()
 			{
 				OrderBookId = cryptoExchanger.Id,
 				Id = b.Id,
@@ -181,7 +179,7 @@ namespace BtcTrader.ExchangeServices
 			List<OrderResponse> result = new();
 
 			if (bids == null || !bids.Any() || exchangerBalance == null)
-				return null;
+				return new();
 
 			var amount = exchangerBalance.BTCBalance < orderRequest.BTCAmount ? exchangerBalance.BTCBalance : orderRequest.BTCAmount;
 

@@ -16,4 +16,4 @@ var host = Host.CreateDefaultBuilder()
 				services.AddTransient<Service>();
 			}).Build();
 
-host.Services.GetService<Service>().Start();
+host.Services.GetService<Service>().Start(args);

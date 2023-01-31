@@ -1,7 +1,8 @@
 using BtcTrader.ExchangeServices;
-using BtcTrader.Models;
+using BtcTrader.Models.Request;
 using BtcTrader.Models.Response;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace BtcTrader.Controllers
 {
@@ -16,21 +17,20 @@ namespace BtcTrader.Controllers
 			_orderCalculationService = orderCalculationService;
 		}
 
-		[HttpPost("bestorderstarategy")]
+		[HttpPost("bestorderstrategy")]
 		[ProducesResponseType(typeof(IEnumerable<OrderResponse>), StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public ActionResult CaluculateBestOrderStrategy([FromBody] RequestInfo requestInfo)
+		public ActionResult CalculateBestOrderStrategy([FromBody] RequestInfo requestInfo)
 		{
 			try
 			{
 				var result = _orderCalculationService.CalculateBestStrategyWithMinimalInput(requestInfo);
 				return Ok(result);
 			}
-			catch (Exception e)
+			catch (ValidationException e)
 			{
 				return BadRequest(e.Message);
 			}
-
 		}
 
 	}

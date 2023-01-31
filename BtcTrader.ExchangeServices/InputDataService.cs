@@ -1,23 +1,47 @@
 ﻿using BtcTrader.ExchangeServices.Models;
+using BtcTrader.Models;
+using CommandLine;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 
 namespace BtcTrader.ExchangeServices
 {
 	public class InputDataService
 	{
-		private readonly List<CryptoExchanger> _orderBooks = new List<CryptoExchanger>();
-		private static readonly Regex pattern = new(@"(?<id>\d+(\.+\d+)*)\s*(?<json>\{(.+|\s+)})");
+		private readonly List<CryptoExchanger> _cryptoExchangers = new();
+		private static readonly Regex _pattern = new(@"(?<id>\d+(\.+\d+)*)\s*(?<json>\{(.+|\s+)})");
 
-		public void ParseData(string path)
+		private string _path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Data\order_books_data");
+
+		public InputDataService(IConfiguration configuration)
 		{
-			if (_orderBooks.Any())
-				return;
+			string? configPath = configuration["DataPath"];
+			// set path from configuration
+			if (!string.IsNullOrEmpty(configPath))
+			{
+				_path = configPath;
+			}
+			// set path from command line or leave default
+			else
+			{
+				string[] args = Environment.GetCommandLineArgs();
+				Parser parser = new(with =>
+				{
+					with.IgnoreUnknownArguments = true;
+				});
+				parser.ParseArguments<DataPath>(args)
+						.WithParsed(o => _path = o.Path ?? _path);
+			}
 
-			var text = File.ReadAllText(path);
+			ParseData();
+		}
 
-			var matchCollection = pattern.Matches(text);
+		public void ParseData()
+		{
+			var text = File.ReadAllText(_path);
+
+			var matchCollection = _pattern.Matches(text);
 
 			if (matchCollection == null)
 				throw new Exception("The data file does not match the regular expression");
@@ -29,24 +53,24 @@ namespace BtcTrader.ExchangeServices
 
 				OrderBook? orderBook = JsonConvert.DeserializeObject<OrderBook>(json);
 				if (orderBook != null)
-					_orderBooks.Add(new CryptoExchanger()
+					_cryptoExchangers.Add(new CryptoExchanger()
 					{
 						Id = id,
 						AcqTime = orderBook.AcqTime,
-						Bids = orderBook.Bids?.Select(x => x.Order).OrderByDescending(x => x.Price).ThenByDescending(x => x.Amount).ToArray(),
-						Asks = orderBook.Asks?.Select(x => x.Order).OrderBy(x => x.Price).ThenByDescending(x => x.Amount).ToArray(),
+						Bids = orderBook.Bids.Select(x => x.Order).OrderByDescending(x => x.Price).ThenByDescending(x => x.Amount).ToArray(),
+						Asks = orderBook.Asks.Select(x => x.Order).OrderBy(x => x.Price).ThenByDescending(x => x.Amount).ToArray(),
 					});
 			}
 		}
 
 		public List<CryptoExchanger> GetCryptoExchangers()
 		{
-			return _orderBooks;
+			return _cryptoExchangers;
 		}
 
 		public List<CryptoExchanger> GetCryptoExchangersByIdList(List<string> ids)
 		{
-			return _orderBooks.Where(book => ids.Exists(id => id == book.Id)).ToList();
+			return _cryptoExchangers.Where(book => ids.Exists(id => id == book.Id)).ToList();
 		}
 	}
 }

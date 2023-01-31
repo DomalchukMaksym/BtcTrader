@@ -8,9 +8,9 @@ namespace BtcTrader.ExchangeServices.Models
 
 		public DateTime Time { get; set; }
 
-		public OrderTypeEnum Type { get; set; }
+		public OrderType Type { get; set; }
 
-		public OrderKindEnum Kind { get; set; }
+		public OrderKind Kind { get; set; }
 
 		public decimal Amount { get; set; }
 
