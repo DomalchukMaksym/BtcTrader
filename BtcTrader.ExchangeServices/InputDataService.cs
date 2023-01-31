@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace BtcTrader.ExchangeServices
 {
-	public class InputDataService
+	public class InputDataService : IInputDataService
 	{
 		private readonly List<CryptoExchanger> _cryptoExchangers = new();
 		private static readonly Regex _pattern = new(@"(?<id>\d+(\.+\d+)*)\s*(?<json>\{(.+|\s+)})");
@@ -37,7 +37,7 @@ namespace BtcTrader.ExchangeServices
 			ParseData();
 		}
 
-		public void ParseData()
+		private void ParseData()
 		{
 			var text = File.ReadAllText(_path);
 

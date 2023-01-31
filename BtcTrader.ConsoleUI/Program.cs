@@ -11,7 +11,7 @@ var host = Host.CreateDefaultBuilder()
 			})
 			.ConfigureServices((context, services) =>
 			{
-				services.AddTransient<InputDataService>();
+				services.AddTransient<IInputDataService, InputDataService>();
 				services.AddTransient<OrderCalculationService>();
 				services.AddTransient<Service>();
 			}).Build();

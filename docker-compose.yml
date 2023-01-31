@@ -1,0 +1,13 @@
+version: '3.4'
+
+services:
+  btctrader.webapi:
+    image: ${DOCKER_REGISTRY-}btctraderwebapi
+    build:
+      context: .
+      dockerfile: BtcTrader.WebAPI/Dockerfile
+    ports:
+      - "8000:80"
+      - "8001:443"
+    environment:
+      - DataPath=/app/bin/Debug/net6.0/Data/order_books_data

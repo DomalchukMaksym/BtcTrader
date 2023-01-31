@@ -16,7 +16,7 @@ namespace BtcTrader.WebAPI
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddControllers();
-			services.AddTransient<InputDataService>();
+			services.AddTransient<IInputDataService, InputDataService>();
 			services.AddTransient<OrderCalculationService>();
 			services.AddSwaggerGen(x =>
 			{

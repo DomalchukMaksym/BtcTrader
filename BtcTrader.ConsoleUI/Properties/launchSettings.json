@@ -2,7 +2,7 @@
   "profiles": {
     "BtcTrader.ConsoleUI": {
       "commandName": "Project",
-      "commandLineArgs": "--btcamount 5 --ordertype Sell --btcbalance -5 --eurobalance 20 --path C:\\Users\\Ipaskakal\\source\\repos\\order_books_data"
+      "commandLineArgs": "--btcamount 5 --ordertype Sell --btcbalance 7 --eurobalance 20 --path C:\\Users\\Ipaskakal\\source\\repos\\order_books_data"
     }
   }
 }

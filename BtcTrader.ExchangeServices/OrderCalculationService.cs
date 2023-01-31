@@ -10,8 +10,8 @@ namespace BtcTrader.ExchangeServices
 {
     public class OrderCalculationService
 	{
-		private readonly InputDataService _inputDataService;
-		public OrderCalculationService(InputDataService inputDataService)
+		private readonly IInputDataService _inputDataService;
+		public OrderCalculationService(IInputDataService inputDataService)
 		{
 			_inputDataService = inputDataService;
 		}
