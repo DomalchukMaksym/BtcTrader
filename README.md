@@ -10,6 +10,9 @@ The console application accepts 5 arguments in command line argument as options:
 - --eurobalance \<value\> - required decimal 
 - --path \<value\> - optional string path to data file
 
+Example: --btcamount 5 --ordertype Sell --btcbalance 7 --eurobalance 20 --path C:\Users\Ipaskakal\source\repos\order_books_data
+
+
 Web application accepts in the body of the request same 4 required arguments, but order type is number (0 - Sell, 1 - Buy). 
 Can be run as a regular visual studio project, in this case, the path to the data file can be specified via appsettings.json.
 Or can be run via docker compose, in this case, the path to the data file can be specified via appsettings.json or docker compose environment variables.
