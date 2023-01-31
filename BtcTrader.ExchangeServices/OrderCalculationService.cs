@@ -39,6 +39,7 @@ namespace BtcTrader.ExchangeServices
 			if (!validationResult)
 				throw new ValidationException(validationMessage);
 
+			// get exchangers only where order have any balance
 			List<CryptoExchanger> cryptoExchangers = _inputDataService.GetCryptoExchangersByIdList(orderRequest.ExchangerBalances.Select(b => b.Id).ToList());
 			List<OrderResponse> possibleOrders = new();
 

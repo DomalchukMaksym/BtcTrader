@@ -5,7 +5,11 @@ namespace BtcTrader.ExchangeServices.Validators
 {
     public class OrderValidator
     {
-        public static (bool, string) Validate(OrderRequest orderRequest)
+		/// <summary>
+		/// Validate order request.
+		/// </summary>
+		/// <returns>False and error message, true and empty otherwise</returns>
+		public static (bool, string) Validate(OrderRequest orderRequest)
         {
             if (orderRequest.BTCAmount < 0)
                 return (false, "BTC amount cannot be less than 0");
@@ -16,7 +20,7 @@ namespace BtcTrader.ExchangeServices.Validators
             if (orderRequest.OrderType == OrderType.Sell && orderRequest.ExchangerBalances.Sum(e => e.BTCBalance) < orderRequest.BTCAmount)
                 return (false, "Total BTC balance cannot be less than order BTC amount");
 
-            return (true, "");
+            return (true, string.Empty);
         }
     }
 }
